@@ -1,0 +1,21 @@
+
+.grid {
+    display: grid;
+     gap: 5px;
+    justify-content: center;
+    align-items: center;
+    grid-template-rows: repeat(15, 40px);
+    grid-template-columns: repeat(20, 40px);
+  }
+  
+  
+  .row {
+    display: contents;
+  }
+  
+  .cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #333;
+  }
+  
