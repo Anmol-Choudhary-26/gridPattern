@@ -1,52 +1,73 @@
-import  { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import '../styles/Grid.css';
+
 const Grid = () => {
-  const rows = 15
-  const cols = 20
+  const rows = 15;
+  const cols = 20;
   const [grid, setGrid] = useState(
-    Array(15)
-      .fill(null)
-      .map(() => Array(20).fill(null).map(() => ({ color: 'black' })))
+    Array(rows).fill(null).map(
+      () => Array(cols).fill(null).map(() => ({ color: 'black' }))
+    )
   );
   const dropsRef = useRef([]);
+  const colors = useMemo(() => [{r: 82, g: 212, b: 12},
+     {r: 182, g: 22, b: 212},
+      {r: 122, g: 132, b: 212} ,
+      { r: 255, g: 0, b: 0 }, 
+      { r: 0, g: 255, b: 0 },
+      { r: 0, g: 0, b: 255 },], []);
+  const [currentColor, setCurrentColor] = useState(colors[0]);
 
- 
+  useEffect(() => {
+    const changeColor = () => {
+      let changedColor = colors[Math.floor(Math.random() * colors.length)];
+      setCurrentColor({
+        ...currentColor,
+        r: changedColor.r,
+        g: changedColor.g,
+        b: changedColor.b,
+      });
+    };
+    setInterval(changeColor, 2000);
+
+    return () => clearInterval(changeColor);
+  }, [colors, currentColor]);
 
   useEffect(() => {
     const dropRain = () => {
       setGrid(prevGrid => {
-        let newGrid = prevGrid.map(row => row.map(cell => ({ ...cell, color: 'black' })));
+        // Create a new grid with all cells set to black
+        const updatedGrid = prevGrid.map(row => row.map(cell => ({ ...cell, color: 'black' })));
 
-        for (let i = dropsRef.current.length - 1; i >= 0; i--) {
-          const drop = dropsRef.current[i];
+        // Move each drop down one row if possible, or remove it if it has reached the bottom
+        dropsRef.current = dropsRef.current.filter(drop => {
           if (drop.row < rows - 1) {
             drop.row++;
-            newGrid[drop.row][drop.col].color = drop.color;
-          } else {
-            dropsRef.current.splice(i, 1);
+            updatedGrid[drop.row][drop.col].color = drop.color;
+            return true;
           }
-        }
+          return false;
+        });
 
-        if (dropsRef.current.every(drop => drop.row > 0) || dropsRef.current.length === 0) {
+        // If all drops are below the first row or no drops exist, add new drops
+        if (dropsRef.current.length === 0 || dropsRef.current.every(drop => drop.row > 0)) {
           const randomCol = Math.floor(Math.random() * cols);
           for (let i = 0; i < 5; i++) {
-            const colorDensity = (i / 5);
-            const dropColor = `rgba(${Math.floor(colorDensity * 255)}, ${Math.floor(colorDensity * 255)}, ${Math.floor(colorDensity * 255)}, ${colorDensity})`;
-            newGrid[i][randomCol].color = dropColor;
+            const opacity = (i + 1) / 5; // Ensure opacity is never zero
+            const dropColor = `rgba(${currentColor.r}, ${currentColor.g}, ${currentColor.b}, ${opacity})`;
+            updatedGrid[i][randomCol].color = dropColor;
             dropsRef.current.push({ row: i, col: randomCol, color: dropColor });
           }
         }
 
-        return newGrid;
+        return updatedGrid;
       });
     };
-    
-     
-    
-     const intervalId = setInterval(dropRain, 100)
 
-     return () => clearInterval(intervalId);
-    }, [grid]);
+    const intervalId = setInterval(dropRain, 100);
+
+    return () => clearInterval(intervalId);
+  }, [grid, currentColor]);
 
   return (
     <div className="grid">
