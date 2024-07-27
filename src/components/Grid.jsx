@@ -21,17 +21,17 @@ const Grid = () => {
   useEffect(() => {
     const changeColor = () => {
       let changedColor = colors[Math.floor(Math.random() * colors.length)];
-      setCurrentColor({
+      setCurrentColor(c => {return({
         ...currentColor,
         r: changedColor.r,
         g: changedColor.g,
         b: changedColor.b,
-      });
+      })});
     };
     setInterval(changeColor, 2000);
 
     return () => clearInterval(changeColor);
-  }, [colors, currentColor]);
+  }, []);
 
   useEffect(() => {
     const dropRain = () => {
